@@ -76,6 +76,11 @@ class MicroDeviceAPI final : public DeviceAPI {
                       TVMType type_hint,
                       TVMStreamHandle stream) final {
     std::tuple<int, int> type_from_to(ctx_from.device_type, ctx_to.device_type);
+
+    // time to flush it!!
+    std::shared_ptr<MicroSession> &session = MicroSession::Current();
+    session->FlushTasks();
+    
     if (type_from_to == std::make_tuple(kDLMicroDev, kDLMicroDev)) {
       // Copying from the device to the device.
 
@@ -121,7 +126,7 @@ class MicroDeviceAPI final : public DeviceAPI {
   }
 
   void StreamSync(TVMContext ctx, TVMStreamHandle stream) final {
-	  LOG(FATAL) << "STOP IT!!!!!!!!!!!!!!\n";
+      LOG(FATAL) << "STOP IT!!!!!!!!!!!!!!\n";
   }
 
   void* AllocWorkspace(TVMContext ctx, size_t size, TVMType type_hint) final {
