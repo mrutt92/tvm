@@ -159,10 +159,10 @@ class MicroSession : public ModuleNode {
   template <typename T>
   void DevSymbolWrite(const SymbolMap& symbol_map, const std::string& symbol, const T& value, size_t idx = 0);
 
-    // it flushes!
-    // don't just do it -- flush it!
-    void FlushTasks();
-    
+  // it flushes!
+  // don't just do it -- flush it!
+  void FlushTasks();
+
   /*!
    * \brief returns low-level device pointer
    * \note assumes low-level device has been initialized
@@ -190,8 +190,8 @@ class MicroSession : public ModuleNode {
   DevBaseOffset utvm_main_symbol_;
   /*! \brief offset of the runtime exit breakpoint */
   DevBaseOffset utvm_done_symbol_;
-    std::vector<std::pair<UTVMTask, DevBaseOffset>> utvm_tasks;
-    
+  std::vector<std::pair<UTVMTask, DevBaseOffset>> utvm_tasks;
+
   /*!
    * \brief patches a function pointer in this module to an implementation
    * \param func_name name of the function pointer being patched

@@ -171,7 +171,7 @@ void MicroSession::FlushTasks() {
   }
   utvm_tasks.clear();
 }
-	
+
 std::tuple<DevPtr, DevPtr> MicroSession::EncoderAppend(
     TargetDataLayoutEncoder* encoder, const TVMArgs& args) {
   const int* type_codes = args.type_codes;
