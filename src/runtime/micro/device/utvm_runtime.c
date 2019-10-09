@@ -38,6 +38,8 @@ extern "C" {
 // Task pointers must be patched before calling a function.
 UTVMTask tasks[QUEUE_SIZE];
 
+size_t ntasks = 0;
+
 // These pointers are patched at load time to point to the workspace section.
 char* utvm_workspace_begin = NULL;  // NOLINT(*)
 char* utvm_workspace_end = NULL;  // NOLINT(*)
@@ -54,8 +56,7 @@ void UTVMDone() { }
 
 void UTVMMain() {
 
-  /*TODO: check if elements are actually initialized :) */
-  for (int i = 0; i < QUEUE_SIZE; i++) {
+  for (int i = 0; i < ntasks; i++) {
     utvm_workspace_curr = utvm_workspace_begin;
     utvm_num_active_allocs = 0;
     utvm_last_error = NULL;  // NOLINT(*)
