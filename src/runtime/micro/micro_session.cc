@@ -152,20 +152,24 @@ void MicroSession::PushToExecQueue(DevBaseOffset func, const TVMArgs& args) {
 }
 
 void MicroSession::FlushTasks() {
-	DevSymbolWrite(runtime_symbol_map(), "ntasks", utvm_tasks.size());
-	for (size_t i = 0; i < utvm_tasks.size(); ++i) {
-		DevSymbolWrite(runtime_symbol_map(), "tasks", utvm_tasks[i].first, i);
-	}
+  if (utvm_tasks.empty())
+    return;
 
+  DevSymbolWrite(runtime_symbol_map(), "utvm_ntasks", utvm_tasks.size());
+  for (size_t i = 0; i < utvm_tasks.size(); ++i) {
+    UTVMTask & task = utvm_tasks[i].first;
+    DevSymbolWrite(runtime_symbol_map(), "utvm_tasks", task, i);
+  }
 
-	low_level_device()->Execute(utvm_main_symbol_, utvm_done_symbol_);
-	// Check if there was an error during execution.  If so, log it.
-	CheckDeviceError();
+  low_level_device()->Execute(utvm_main_symbol_, utvm_done_symbol_);
 
-	for (size_t i = 0; i < utvm_tasks.size(); ++i) {
-		GetAllocator(SectionKind::kArgs)->Free(utvm_tasks[i].second);
-	}
-	utvm_tasks.clear();
+  CheckDeviceError();
+
+  for (size_t i = 0; i < utvm_tasks.size(); ++i) {
+    DevBaseOffset stream_dev_offset = utvm_tasks[i].second;
+    GetAllocator(SectionKind::kArgs)->Free(stream_dev_offset);
+  }
+  utvm_tasks.clear();
 }
 	
 std::tuple<DevPtr, DevPtr> MicroSession::EncoderAppend(

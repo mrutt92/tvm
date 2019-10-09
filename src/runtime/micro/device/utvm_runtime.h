@@ -33,7 +33,7 @@ extern "C" {
 #include <tvm/runtime/c_runtime_api.h>
 
 
-#define QUEUE_SIZE 2
+#define QUEUE_SIZE 32
 /*!
  * \brief Task structure for uTVM
  */

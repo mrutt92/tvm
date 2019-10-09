@@ -76,10 +76,6 @@ class MicroDeviceAPI final : public DeviceAPI {
                       TVMType type_hint,
                       TVMStreamHandle stream) final {
     std::tuple<int, int> type_from_to(ctx_from.device_type, ctx_to.device_type);
-
-    // time to flush it!!
-    std::shared_ptr<MicroSession> &session = MicroSession::Current();
-    session->FlushTasks();
     
     if (type_from_to == std::make_tuple(kDLMicroDev, kDLMicroDev)) {
       // Copying from the device to the device.
@@ -92,6 +88,8 @@ class MicroDeviceAPI final : public DeviceAPI {
       CHECK(ctx_from.device_id == ctx_to.device_id)
         << "can only copy between the same micro device";
       std::shared_ptr<MicroSession>& session = from_space->session;
+      session->FlushTasks();
+
       const std::shared_ptr<LowLevelDevice>& lld = session->low_level_device();
 
       DevBaseOffset from_dev_offset = GetDevLoc(from_space, from_offset);
@@ -105,6 +103,7 @@ class MicroDeviceAPI final : public DeviceAPI {
 
       MicroDevSpace* from_space = static_cast<MicroDevSpace*>(const_cast<void*>(from));
       std::shared_ptr<MicroSession>& session = from_space->session;
+      session->FlushTasks();
       const std::shared_ptr<LowLevelDevice>& lld = session->low_level_device();
 
       DevBaseOffset from_dev_offset = GetDevLoc(from_space, from_offset);
@@ -115,6 +114,7 @@ class MicroDeviceAPI final : public DeviceAPI {
 
       MicroDevSpace* to_space = static_cast<MicroDevSpace*>(const_cast<void*>(to));
       std::shared_ptr<MicroSession>& session = to_space->session;
+      session->FlushTasks();
       const std::shared_ptr<LowLevelDevice>& lld = session->low_level_device();
 
       void* from_host_ptr = GetHostLoc(from, from_offset);
