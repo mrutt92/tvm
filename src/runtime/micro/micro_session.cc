@@ -143,16 +143,31 @@ void MicroSession::PushToExecQueue(DevBaseOffset func, const TVMArgs& args) {
       .arg_type_codes = std::get<1>(arg_field_addrs).cast_to<int*>(),
       .num_args = args.num_args,
   };
-  // Write the task.
-  DevSymbolWrite(runtime_symbol_map(), "task", task);
 
-  low_level_device()->Execute(utvm_main_symbol_, utvm_done_symbol_);
-  // Check if there was an error during execution.  If so, log it.
-  CheckDeviceError();
+  utvm_tasks.push_back({task, stream_dev_offset});
 
-  GetAllocator(SectionKind::kArgs)->Free(stream_dev_offset);
+  if (utvm_tasks.size() == QUEUE_SIZE)
+	  FlushTasks();
+
 }
 
+void MicroSession::FlushTasks() {
+	DevSymbolWrite(runtime_symbol_map(), "ntasks", utvm_tasks.size());
+	for (size_t i = 0; i < utvm_tasks.size(); ++i) {
+		DevSymbolWrite(runtime_symbol_map(), "tasks", utvm_tasks[i].first, i);
+	}
+
+
+	low_level_device()->Execute(utvm_main_symbol_, utvm_done_symbol_);
+	// Check if there was an error during execution.  If so, log it.
+	CheckDeviceError();
+
+	for (size_t i = 0; i < utvm_tasks.size(); ++i) {
+		GetAllocator(SectionKind::kArgs)->Free(utvm_tasks[i].second);
+	}
+	utvm_tasks.clear();
+}
+	
 std::tuple<DevPtr, DevPtr> MicroSession::EncoderAppend(
     TargetDataLayoutEncoder* encoder, const TVMArgs& args) {
   const int* type_codes = args.type_codes;
@@ -348,9 +363,10 @@ T MicroSession::DevSymbolRead(const SymbolMap& symbol_map, const std::string& sy
 template <typename T>
 void MicroSession::DevSymbolWrite(const SymbolMap& symbol_map,
                                   const std::string& symbol,
-                                  const T& value) {
+                                  const T& value,
+				  size_t idx) {
   DevBaseOffset sym_offset = low_level_device()->ToDevOffset(symbol_map[symbol]);
-  low_level_device()->Write(sym_offset, &value, sizeof(T));
+  low_level_device()->Write(sym_offset + (idx*sizeof(T)), &value, sizeof(T));
 }
 
 PackedFunc MicroSession::GetFunction(

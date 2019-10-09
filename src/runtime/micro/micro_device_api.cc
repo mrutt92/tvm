@@ -121,6 +121,7 @@ class MicroDeviceAPI final : public DeviceAPI {
   }
 
   void StreamSync(TVMContext ctx, TVMStreamHandle stream) final {
+	  LOG(FATAL) << "STOP IT!!!!!!!!!!!!!!\n";
   }
 
   void* AllocWorkspace(TVMContext ctx, size_t size, TVMType type_hint) final {
